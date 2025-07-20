@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ShipmentList from "../components/trackingComponent";
 import Shipments from "../components/shipments.js";
-import AgaryLogo from "../assets/agary_logo.png"
+import AgaryLogo from "../assets/Agary_logo.png"
 
 export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(false);
