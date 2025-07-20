@@ -1,5 +1,5 @@
 import LoginForm from "../components/loginForm";
-import AgaryLogo from "../assets/agary_logo.png"
+import AgaryLogo from "../assets/Agary_logo.png"
 
 export default function LoginPage() {
   return (
