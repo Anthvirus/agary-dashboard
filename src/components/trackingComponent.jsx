@@ -1,9 +1,12 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Pencil, Trash2 } from "lucide-react";
-import Shipments from "./shipments"; 
+import axios from "axios";
+
+
+const baseURL = "https://nacon-v2.onrender.com";
 
 export default function ShipmentList() {
-  const [shipments, setShipments] = useState(Shipments);
+  const [shipments, setShipments] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [editData, setEditData] = useState(null);
@@ -13,13 +16,36 @@ export default function ShipmentList() {
   const [searchTerm, setSearchTerm] = useState("");
   const inputRefs = useRef({});
 
+  useEffect(() => {
+    fetchShipments();
+  }, []);
+
+  async function fetchShipments(){
+    setLoading(true);
+    try {
+      const res = await axios.get(`${baseURL}/v2/shipments`);
+      const formatted = res.data.map((s) => ({
+        ...s,
+        containerNo: Array.isArray(s.containerNo)
+          ? s.containerNo
+          : typeof s.containerNo === "string"
+          ? s.containerNo
+              .split(",")
+              .map((c) => c.trim())
+              .filter(Boolean)
+          : [],
+      }));
+      setShipments(formatted);
+    } catch (err) {
+      console.error("Error fetching shipments:", err);
+    }
+    setLoading(false);
+  };
+
   const filteredShipments = shipments.filter((shipment) =>
-    (Array.isArray(shipment.containerNo)
-      ? shipment.containerNo.join(",")
-      : shipment.containerNo
+    shipment.containerNo?.some((num) =>
+      num.toLowerCase().includes(searchTerm.toLowerCase())
     )
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
   );
 
   const handleEditClick = (shipment) => {
@@ -31,7 +57,7 @@ export default function ShipmentList() {
     const requiredFields = [
       "containerNo",
       "paar",
-      "products"
+      "nameOfProducts"
     ];
 
     const newData = { ...editData };
@@ -62,13 +88,9 @@ export default function ShipmentList() {
     setLoading(true);
 
     try {
-      const updatedList = shipments.map((s) =>
-        s.billLandingNo === newData.billLandingNo ? newData : s
-      );
-      setShipments(updatedList);
+      await axios.put(`${baseURL}/v2/shipments/update`, newData);
       setMessage("✅ Shipment updated successfully.");
-      setShowEditModal(false);
-      setEditData(null);
+      window.location.reload();
     } catch (err) {
       console.error("Error updating shipment:", err);
       setMessage("❌ Failed to update shipment.");
@@ -82,16 +104,18 @@ export default function ShipmentList() {
 
     setLoading(true);
     try {
+      await axios.delete(`${baseURL}/v2/shipments/${deleteData.id}`);
+      setMessage("🗑️ Shipment deleted.");
       setShipments((prev) =>
         prev.filter((s) => s.billLandingNo !== deleteData.billLandingNo)
       );
-      setMessage("🗑️ Shipment deleted.");
       setDeleteData(null);
     } catch (err) {
       console.error("Error deleting shipment:", err);
       setMessage("❌ Failed to delete shipment.");
     }
     setLoading(false);
+    window.location.reload();
   };
 
   const InfoRow = ({ label, value, style }) => (
@@ -122,8 +146,9 @@ export default function ShipmentList() {
     <>
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
-          <div className="bg-white px-6 py-4 rounded shadow-lg text-lg font-medium">
-            Loading, please wait...
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-t-blue-400 border-white rounded-full animate-spin"></div>
+            <span className="sr-only">Loading...</span>
           </div>
         </div>
       )}
@@ -131,7 +156,10 @@ export default function ShipmentList() {
       {message && (
         <div className="fixed top-6 right-6 bg-green-100 border border-green-300 text-green-700 p-4 text-xl rounded-tl-2xl shadow">
           {message}
-          <button onClick={() => setMessage("")} className="ml-4 font-bold cursor-pointer hover:scale-105 delay-200 text-xl absolute top-0 right-2 text-black">
+          <button
+            onClick={() => setMessage("")}
+            className="ml-4 font-bold cursor-pointer hover:scale-105 delay-200 text-xl absolute top-0 right-2 text-black"
+          >
             ×
           </button>
         </div>
@@ -141,7 +169,7 @@ export default function ShipmentList() {
         <input
           type="text"
           placeholder="Search by container number..."
-          className="w-full px-4 py-2 border-2 bg-gray-100 rounded-tl-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border-2 bg-gray-100 rounded-tl-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -155,7 +183,7 @@ export default function ShipmentList() {
           >
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold px-2 py-1 border-2 text-black rounded-tr-xl">
-                {shipment.billLandingNo} - {" "}
+                {shipment.billLandingNo} -{" "}
                 <span className="text-black font-mono font-semibold">
                   {Array.isArray(shipment.containerNo)
                     ? `{${shipment.containerNo.join(" - ")}}`
@@ -179,14 +207,17 @@ export default function ShipmentList() {
               </div>
             </div>
             <div className="flex justify-around flex-wrap">
-              <InfoRow label="Products" value={shipment.products} />
+              <InfoRow label="Products" value={shipment.nameOfProducts} />
               <InfoRow
                 label="Shipping Line"
                 value={(shipment.shippingLine || "").replace(/_/g, " ")}
               />
               <InfoRow label="Port of loading" value={shipment.portOfLoading} />
-              <InfoRow label="Port of discharge" value={shipment.portOfDischarge} />
-                            <InfoRow label="Vessel" value={shipment.vessel} />
+              <InfoRow
+                label="Port of discharge"
+                value={shipment.portOfDischarge}
+              />
+              <InfoRow label="Vessel" value={shipment.vessel} />
 
               <InfoRow
                 label="Status"
@@ -217,9 +248,17 @@ export default function ShipmentList() {
             </button>
             <button
               onClick={handleDelete}
-              className="px-4 py-2 bg-red-700 text-white rounded-tl-2xl hover:opacity-80 cursor-pointer"
+              className="px-4 py-2 bg-red-700 text-white rounded-tl-2xl hover:opacity-80 cursor-pointer flex items-center justify-center gap-2"
+              disabled={loading}
             >
-              {loading ? "Deleting..." : "Delete Shipment"}
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Shipment"
+              )}
             </button>
           </div>
         </Modal>
@@ -232,11 +271,7 @@ export default function ShipmentList() {
         {editData && (
           <>
             <div className="grid grid-cols-3 gap-5 min-w-auto">
-              {[ 
-                "containerNo",
-                "products",
-                "paar"
-              ].map((field) => (
+              {["containerNo", "nameOfProducts", "paar"].map((field) => (
                 <div className="flex flex-col mb-3" key={field}>
                   <label className="capitalize text-sm font-medium">
                     {field.replace(/([A-Z])/g, " $1")}
@@ -280,11 +315,18 @@ export default function ShipmentList() {
               <button
                 onClick={handleSave}
                 disabled={loading}
-                className={`px-4 py-2 text-white rounded-tl-xl hover:opacity-80 cursor-pointer ${
+                className={`px-4 py-2 text-white rounded-tl-xl hover:opacity-80 cursor-pointer flex items-center justify-center gap-2 ${
                   loading ? "bg-gray-400" : "bg-green-700"
                 }`}
               >
-                {loading ? "Updating..." : "Update Shipment"}
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Shipment"
+                )}
               </button>
             </div>
           </>

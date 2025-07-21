@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import Shipments from "../components/shipments";
 import AgaryLogo from "../assets/Agary_logo.png"
+import axios from "axios";
+
+const baseURL = "https://nacon-v2.onrender.com";
 
 export default function OverviewShipmentComponent() {
   const [shipments, setShipments] = useState([]);
@@ -10,14 +12,23 @@ export default function OverviewShipmentComponent() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    try {
-      setShipments(Shipments);
-      setFilteredShipments(Shipments);
-      setLoading(false);
-    } catch (err) {
-      setError("Failed to load shipment data.");
-      setLoading(false);
+    async function fetchShipments() {
+      try {
+        const res = await axios.get(
+          `${baseURL}/v2/shipments`
+        );
+        setShipments(res.data);
+        setFilteredShipments(res.data);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching shipments:", err);
+        if(shipments.length == 0){
+        setError("Failed to load shipments.");}
+        setLoading(false);
+      }
     }
+
+    fetchShipments();
   }, []);
 
   useEffect(() => {
@@ -25,7 +36,7 @@ export default function OverviewShipmentComponent() {
     const filtered = shipments.filter((shipment) => {
       const containerList = Array.isArray(shipment.containerNo)
         ? shipment.containerNo
-        : [shipment.containerNo]; // Fallback to array
+        : [shipment.containerNo];
 
       return containerList.some((no) => no.toLowerCase().includes(term));
     });
@@ -36,7 +47,7 @@ export default function OverviewShipmentComponent() {
   return (
     <div className="p-4 h-full flex flex-col gap-8">
       <div className="flex gap-6 items-center justify-around bg-gray-100 rounded-bl-2xl shadow-xl">
-        <img src={AgaryLogo} className="w-32 rounded-full"/>
+        <img src={AgaryLogo} className="w-32 rounded-full" />
         <h2 className="text-4xl uppercase font-bold my-8">
           Incoming Shipments View.
         </h2>
@@ -49,18 +60,21 @@ export default function OverviewShipmentComponent() {
         />
       </div>
 
-      <div className="bg-gray-100 rounded-tl-2xl shadow-xl min-h-[47.5rem] flex justify-center items-start">
+      <div className="bg-gray-100 rounded-tl-2xl shadow-xl h-[42.5rem] flex justify-center items-start">
         {loading ? (
-          <div className="text-xl text-black font-semibold my-10 text-center">
-            Loading shipments...
+          <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
+            <div className="relative">
+              <div className="w-24 h-24 border-8 border-t-blue-400 border-white rounded-full animate-spin"></div>
+              <span className="sr-only">Loading...</span>
+            </div>
           </div>
         ) : error ? (
-          <div className="text-red-400 text-lg my-6 text-center">{error}</div>
+          <div className="text-red-400 text-2xl font-extrabold flex justify-center items-center w-full h-full bg-red-100 text-center">{error} Please Check Internet Connection</div>
         ) : (
           <div className="rounded-tl-2xl max-h-full overflow-y-auto w-full">
-            <table className=" border min-w-full text-sm text-left flex flex-col">
-              <thead className=" bg-gray-900 text-white uppercase tracking-wider text-center text-lg font-semibold sticky top-0 z-10 items-center">
-                <tr className="grid grid-cols-9 min-w-full pt-1">
+            <table className=" border-2 min-w-full text-left flex flex-col">
+              <thead className=" bg-gray-900 text-white uppercase tracking-wider text-center text-md font-semibold sticky top-0 z-10">
+                <tr className="grid grid-cols-9 min-w-full pt-1 items-center">
                   <th className="px-4 py-3">Container No.</th>
                   <th className="px-4 py-3">Name Of Product</th>
                   <th className="px-4 py-3">Shipping Line</th>
@@ -72,13 +86,13 @@ export default function OverviewShipmentComponent() {
                   <th className="px-4 py-3">PAAR</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-black">
+              <tbody className="divide-y-2 divide-black">
                 {filteredShipments.map((shipment, idx) => (
                   <tr
                     key={idx}
                     className="grid grid-cols-9 min-w-full items-center text-center bg-gray-100 hover:text-white text-md font-bold hover:bg-black hover:opacity-90 transition-all delay-200 min-h-[6.25rem]"
                   >
-                    <td className="px-4 py-3 underline align-top text-xl">
+                    <td className="px-4 py-3 underline align-top text-md">
                       <code className="bg-[var(--NavBackgroundTwo)] p-2 rounded-tr-md whitespace-pre-line block border">
                         {Array.isArray(shipment.containerNo)
                           ? shipment.containerNo.map((num, i) => (
@@ -87,7 +101,7 @@ export default function OverviewShipmentComponent() {
                           : "-"}
                       </code>
                     </td>
-                    <td className="px-4 py-3">{shipment.products || "-"}</td>
+                    <td className="px-4 py-3">{shipment.nameOfProducts || "-"}</td>
                     <td className="px-4 py-3">
                       {shipment.shippingLine || "-"}
                     </td>

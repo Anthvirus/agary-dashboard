@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import ShipmentList from "../components/trackingComponent";
-import Shipments from "../components/shipments.js";
-import AgaryLogo from "../assets/Agary_logo.png"
+import AgaryLogo from "../assets/Agary_logo.png";
+
+const baseURL = "https://nacon-v2.onrender.com";
 
 export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,21 +15,24 @@ export default function AdminPage() {
   const [shipments, setShipments] = useState([]);
   const [isNewEntryOpen, setNewEntry] = useState(false);
   const [formData, setFormData] = useState({
+    nameOfProducts: "",
     billLandingNo: "",
     containerNo: "",
-    products: "",
-    shippingLine: "",
-    portOfLoading: "",
-    portOfDischarge: "",
-    vessel: "",
-    status: "",
-    ETA: "",
     paar: "",
   });
 
   useEffect(() => {
-    setShipments(Shipments);
+    fetchShipments();
   }, []);
+
+  async function fetchShipments() {
+    try {
+      const res = await axios.get(`${baseURL}/v2/shipments`);
+      setShipments(res.data);
+    } catch (err) {
+      console.error("Error Fetching Shipments:", err);
+    }
+  }
 
   const openNewEntry = () => setNewEntry(true);
 
@@ -63,12 +68,12 @@ export default function AdminPage() {
         shippingLine: formatShippingLine(updated.shippingLine),
       };
 
-      const updatedList = shipments.map((s) =>
-        s.billLandingNo === updated.billLandingNo ? updatedShipment : s
+      const res = await axios.put(`${baseURL}/v2/shipments/update`, updatedShipment);
+      setShipments((prev) =>
+        prev.map((s) =>
+          s.billLandingNo === updated.billLandingNo ? res.data : s
+        )
       );
-
-      setShipments(updatedList);
-      setSuccessMessage("Shipment updated successfully.");
     } catch (err) {
       console.error("Error updating shipment:", err);
     }
@@ -76,10 +81,10 @@ export default function AdminPage() {
 
   const handleDelete = async (billLandingNo) => {
     try {
-      const filtered = shipments.filter(
-        (s) => s.billLandingNo !== billLandingNo
+      await axios.delete(`${baseURL}/v2/shipments/${billLandingNo}`);
+      setShipments((prev) =>
+        prev.filter((s) => s.billLandingNo !== billLandingNo)
       );
-      setShipments(filtered);
     } catch (err) {
       console.error("Error deleting shipment:", err);
     }
@@ -101,42 +106,37 @@ export default function AdminPage() {
     Object.entries(formData).forEach(([k, v]) => {
       if (!v.trim()) newErrors[k] = `Enter ${k.replace(/([A-Z])/g, " $1")}.`;
     });
-
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
-      return;
-    }
-
-    const alreadyExists = shipments.some(
-      (s) => s.billLandingNo === formData.billLandingNo
-    );
-    if (alreadyExists) {
-      setErrorMessage("A shipment with this Bill Landing No already exists.");
       return;
     }
 
     const payload = {
       ...formData,
       containerNo: [formData.containerNo],
-      shippingLine: formData.shippingLine.replace(/\s+/g, "_").toUpperCase(),
     };
 
     try {
       setIsLoading(true);
-      setShipments((prev) => [...prev, payload]);
+      const res = await axios.post(`${baseURL}/v2/shipments/test`, payload);
+      setShipments((prev) => [...prev, res.data]);
       setSuccessMessage("Shipment entry created successfully.");
       setShowConfirm(true);
       closeModals();
     } catch (error) {
-      console.error("Creation error:", error);
-      setErrorMessage("Failed to create shipment.");
+      console.error("Error response:", error.response?.data);
+      const backendError =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Something went wrong";
+      setErrorMessage(backendError);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full text-[var(--Accent)] bg-blue-400 flex flex-col px-8">
+    <div className="w-full text-[var(--Accent)] bg-blue-400 flex flex-col px-8 pb-2">
       <div className="flex justify-between ml-24 mr-12 items-center py-8">
         <h2 className="text-5xl font-extrabold text-black">
           <img src={AgaryLogo} className="w-40 rounded-full" />
@@ -144,15 +144,37 @@ export default function AdminPage() {
         <div className="flex gap-12">
           <button
             onClick={openNewEntry}
-            className="text-lg font-extrabold px-4 py-2 rounded-tr-2xl cursor-pointer shadow-md bg-[var(--Accent)] text-[var(--Secondary)] hover:scale-105 delay-200 transition-all"
+            className="text-lg flex gap-1 items-center group font-normal px-2 py-1 rounded-tr-2xl cursor-pointer shadow-md bg-[var(--Accent)] text-[var(--Secondary)] hover:scale-105 delay-200 transition-all"
           >
-            + Create Shipment Entry
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="20px"
+              fill="#e3e3e3"
+            >
+              <path d="M440-120v-320H120v-80h320v-320h80v320h320v80H520v320h-80Z" />
+            </svg>
+            <p className="group-hover:font-bold transition-transform delay-200">
+              Create Shipment Entry
+            </p>
           </button>
           <button
             onClick={handleLogout}
-            className="text-lg font-extrabold px-4 py-2 rounded-tl-2xl cursor-pointer shadow-md border-2 text-[var(--Accent)] hover:scale-105 delay-200 transition-all bg-gray-100"
+            className="text-lg flex group font-extrabold px-2 py-2 rounded-tl-2xl cursor-pointer shadow-md border-2 text-[var(--Accent)] hover:scale-105 delay-200 transition-all bg-gray-100"
           >
-            Logout
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="20px"
+              fill="#121929"
+            >
+              <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z" />
+            </svg>
+            <p className="group-hover:flex hidden delay-200 transition-transform">
+              Logout
+            </p>
           </button>
         </div>
       </div>
@@ -174,37 +196,34 @@ export default function AdminPage() {
             </div>
 
             <div className="space-y-4 grid grid-cols-3 gap-4">
-              {[
-                "billLandingNo",
-                "containerNo",
-                "products",
-                "paar"
-              ].map((name) => (
-                <div key={name} className="flex flex-col">
-                  <label className="text-sm font-semibold mb-1" htmlFor={name}>
-                    {name
-                      .replace(/([A-Z])/g, " $1")
-                      .replace(/^./, (s) => s.toUpperCase())}
-                    :
-                  </label>
-                  <input
-                    name={name}
-                    type="text"
-                    required
-                    className="border rounded-tr-xl px-3 py-2"
-                    value={formData[name]}
-                    onChange={handleInputChange}
-                  />
-                  {errors[name] && (
-                    <p className="text-red-500 text-xs">{errors[name]}</p>
-                  )}
-                </div>
-              ))}
+              {["billLandingNo", "containerNo", "nameOfProducts", "paar"].map(
+                (name) => (
+                  <div key={name} className="flex flex-col">
+                    <label
+                      className="text-sm font-semibold mb-1"
+                      htmlFor={name}
+                    >
+                      {name
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (s) => s.toUpperCase())}
+                      :
+                    </label>
+                    <input
+                      name={name}
+                      type="text"
+                      id={name}
+                      required
+                      className="border rounded-tr-xl px-3 py-2"
+                      value={formData[name]}
+                      onChange={handleInputChange}
+                    />
+                    {errors[name] && (
+                      <p className="text-red-500 text-xs">{errors[name]}</p>
+                    )}
+                  </div>
+                )
+              )}
             </div>
-
-            {isLoading && (
-              <p className="text-blue-400 font-medium">Creating entry...</p>
-            )}
             {errorMessage && (
               <p className="text-red-600 text-sm mt-2">{errorMessage}</p>
             )}
@@ -221,10 +240,17 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={handleCreate}
-                className="px-4 py-2 bg-blue-400 text-black rounded-tl-xl hover:opacity-80 cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 bg-blue-400 text-black rounded-tl-xl hover:opacity-80 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 disabled={isLoading}
               >
-                {isLoading ? "Creating..." : "Create Shipment"}
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Shipment"
+                )}
               </button>
             </div>
           </div>

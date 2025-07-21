@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
-import AdminImage from "../assets/admin_image.jpg"
-import OverviewImage from "../assets/overview_image.jpg"
+import AdminImage from "../assets/admin_image.jpg";
+import OverviewImage from "../assets/overview_image.jpg";
+import AgaryLogo from "../assets/Agary_logo.png";
 
 export default function HomePage() {
   return (
     <>
       <div className="w-full flex max-h-full">
         <div className="flex items-center w-full flex-col text-[var(--Accent)] bg-blue-400 p-12">
-          <h1 className="text-6xl my-12 font-semibold">
-            Welcome, please select a view
+          <img src={AgaryLogo} className="w-32 rounded-full mr-auto"/>
+          <h1 className="text-3xl my-12 font-semibold">
+            Welcome, please choose a view
           </h1>
           <div className="grid grid-cols-2 gap-6 items-center w-full h-full">
             <Link
