@@ -18,7 +18,7 @@ export default function LoginForm() {
     e.preventDefault();
     setError("");
 
-    if (adminId === "DemoAdmin1" && password === "Demo@pp1") {
+    if (adminId === "Agary1" && password === "Agarytracking2$") {
       localStorage.setItem("isAuthenticated", "true");
       navigate("/admin");
     } else {
