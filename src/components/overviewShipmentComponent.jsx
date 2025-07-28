@@ -106,14 +106,14 @@ export default function OverviewShipmentComponent() {
                       {shipment.shippingLine || "-"}
                     </td>
                     <td className="px-4 py-3">
-                      {shipment.portOfLoading || "-"}
+                      {shipment.portOfLanding || "-"}
                     </td>
                     <td className="px-4 py-3">
                       {shipment.portOfDischarge || "-"}
                     </td>
                     <td className="px-4 py-3">{shipment.vessel || "-"}</td>
                     <td className="px-4 py-3">{shipment.status || "-"}</td>
-                    <td className="px-4 py-3">{shipment.ETA || "-"}</td>
+                    <td className="px-4 py-3">{shipment.eta || "-"}</td>
                     <td className="px-4 py-3">{shipment.paar || "-"}</td>
                   </tr>
                 ))}
