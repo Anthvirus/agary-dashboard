@@ -118,7 +118,7 @@ export default function AdminPage() {
 
     try {
       setIsLoading(true);
-      const res = await axios.post(`${baseURL}/v2/shipments/test`, payload);
+      const res = await axios.post(`${baseURL}/v2/shipments`, payload);
       setShipments((prev) => [...prev, res.data]);
       setSuccessMessage("Shipment entry created successfully.");
       setShowConfirm(true);
