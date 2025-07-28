@@ -212,7 +212,7 @@ export default function ShipmentList() {
                 label="Shipping Line"
                 value={(shipment.shippingLine || "").replace(/_/g, " ")}
               />
-              <InfoRow label="Port of loading" value={shipment.portOfLoading} />
+              <InfoRow label="Port of loading" value={shipment.portOfLanding} />
               <InfoRow
                 label="Port of discharge"
                 value={shipment.portOfDischarge}
@@ -226,7 +226,7 @@ export default function ShipmentList() {
                   color: shipment.status !== "Arrived" ? "Purple" : "Green",
                 }}
               />
-              <InfoRow label="ETA" value={shipment.ETA} />
+              <InfoRow label="ETA" value={shipment.eta} />
               <InfoRow label="PAAR" value={shipment.paar} />
             </div>
           </div>
