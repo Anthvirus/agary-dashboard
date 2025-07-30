@@ -68,7 +68,10 @@ export default function AdminPage() {
         shippingLine: formatShippingLine(updated.shippingLine),
       };
 
-      const res = await axios.put(`${baseURL}/v2/shipments/update`, updatedShipment);
+      const res = await axios.put(
+        `${baseURL}/v2/shipments/update`,
+        updatedShipment
+      );
       setShipments((prev) =>
         prev.map((s) =>
           s.billLandingNo === updated.billLandingNo ? res.data : s
@@ -138,8 +141,9 @@ export default function AdminPage() {
   return (
     <div className="w-full text-[var(--Accent)] bg-blue-400 flex flex-col px-8 pb-2">
       <div className="flex justify-between ml-24 mr-12 items-center py-8">
-        <h2 className="text-5xl font-extrabold text-black">
+        <h2 className="text-5xl font-extrabold text-black flex items-center gap-6">
           <img src={AgaryLogo} className="w-40 rounded-full" />
+          <h2 className="text-3xl font-extrabold">Admin Dashboard</h2>
         </h2>
         <div className="flex gap-12">
           <button
