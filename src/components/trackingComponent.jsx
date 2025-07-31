@@ -121,7 +121,7 @@ export default function ShipmentList() {
   const InfoRow = ({ label, value, style }) => (
     <div className="flex flex-col p-2">
       <span className="text-sm underline">{label}:</span>
-      <span className="font-bold text-xl" style={style}>
+      <span className="font-bold text-xl mt-2 px-3 py-1 rounded-xl uppercase" style={style}>
         {value || "—"}
       </span>
     </div>
@@ -224,6 +224,7 @@ export default function ShipmentList() {
                 value={shipment.status}
                 style={{
                   color: shipment.status !== "Arrived" ? "Purple" : "Green",
+                  backgroundColor: shipment.status !== "Arrived" ? "#EABDE6" : "#A8CD89"  
                 }}
               />
               <InfoRow label="ETA" value={shipment.eta} />

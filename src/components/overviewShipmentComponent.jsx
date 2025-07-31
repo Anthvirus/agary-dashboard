@@ -60,7 +60,7 @@ export default function OverviewShipmentComponent() {
         />
       </div>
 
-      <div className="bg-gray-100 rounded-tl-2xl shadow-xl h-[42.5rem] flex justify-center items-start">
+      <div className="bg-gray-100 rounded-tl-2xl shadow-xl h-full flex justify-center items-start">
         {loading ? (
           <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
             <div className="relative">
