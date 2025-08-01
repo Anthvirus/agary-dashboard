@@ -16,7 +16,6 @@ export default function AdminPage() {
   const [isNewEntryOpen, setNewEntry] = useState(false);
   const [formData, setFormData] = useState({
     nameOfProducts: "",
-    shippingLine: "",
     billLandingNo: "",
     containerNo: "",
     paar: "",
