@@ -105,38 +105,44 @@ export default function AdminPage() {
   };
 
   const handleCreate = async () => {
-    const newErrors = {};
-    Object.entries(formData).forEach(([k, v]) => {
-      if (!v.trim()) newErrors[k] = `Enter ${k.replace(/([A-Z])/g, " $1")}.`;
-    });
-    if (Object.keys(newErrors).length) {
-      setErrors(newErrors);
-      return;
-    }
+  const newErrors = {};
+  Object.entries(formData).forEach(([k, v]) => {
+    if (!v.trim()) newErrors[k] = `Enter ${k.replace(/([A-Z])/g, " $1")}.`;
+  });
+  if (Object.keys(newErrors).length) {
+    setErrors(newErrors);
+    return;
+  }
 
-    const payload = {
-      ...formData,
-      containerNo: [formData.containerNo],
-    };
+  const containerNumbers = formData.containerNo
+    .split(/[\s,-]+/)
+    .map((c) => c.trim())
+    .filter((c) => c.length > 0);
 
-    try {
-      setIsLoading(true);
-      const res = await axios.post(`${baseURL}/v2/shipments`, payload);
-      setShipments((prev) => [...prev, res.data]);
-      setSuccessMessage("Shipment entry created successfully.");
-      setShowConfirm(true);
-      closeModals();
-    } catch (error) {
-      console.error("Error response:", error.response?.data);
-      const backendError =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Something went wrong";
-      setErrorMessage(backendError);
-    } finally {
-      setIsLoading(false);
-    }
+  const payload = {
+    ...formData,
+    containerNo: containerNumbers,
   };
+
+  try {
+    setIsLoading(true);
+    const res = await axios.post(`${baseURL}/v2/shipments/test`, payload);
+    setShipments((prev) => [...prev, res.data]);
+    setSuccessMessage("Shipment entry created successfully.");
+    setShowConfirm(true);
+    closeModals();
+  } catch (error) {
+    console.error("Error response:", error.response?.data);
+    const backendError =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Something went wrong";
+    setErrorMessage(backendError);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="w-full text-[var(--Accent)] bg-blue-400 flex flex-col px-8 pb-2">
