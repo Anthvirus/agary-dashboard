@@ -200,7 +200,7 @@ export default function AdminPage() {
             </div>
 
             <div className="space-y-4 grid grid-cols-3 gap-4">
-              {["billLandingNo", "containerNo", "nameOfProducts", "paar", "shippingLine"].map(
+              {["billLandingNo", "containerNo", "nameOfProducts", "paar"].map(
                 (name) => (
                   <div key={name} className="flex flex-col">
                     <label
